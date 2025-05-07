@@ -1,78 +1,68 @@
 import User from '../models/User.js';
 import Profile from '../models/Profile.js';
+import crypto from 'crypto'
+import { Parser } from 'json2csv'
 
 const createUserProfile = async (req, res) => {
   try {
     const {
       graduationYear,
       degree,
-      avatar,
       phone,
       bio,
-      currentJob,
       skills,
-      socialLinks,
-      privacySettings
+      'currentJob.title': title,
+      'currentJob.company': company,
+      'currentJob.location': location,
+      'socialLinks.linkedIn': linkedIn,
+      'socialLinks.github': github,
+      'privacySettings.showEmail': showEmail,
+      'privacySettings.showPhone': showPhone
     } = req.body;
 
-    // Find the user
     const user = await User.findById(req.user._id);
-
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    // Update profile fields
-    if (graduationYear !== undefined) user.graduationYear = graduationYear;
-    if (degree !== undefined) user.degree = degree;
-    if (avatar !== undefined) user.avatar = avatar;
-    if (phone !== undefined) user.phone = phone;
-    if (bio !== undefined) user.bio = bio;
-    
-    // Handle nested objects
-    if (currentJob) {
-      user.currentJob = {
-        title: currentJob.title || user.currentJob?.title,
-        company: currentJob.company || user.currentJob?.company,
-        location: currentJob.location || user.currentJob?.location
-      };
+    if (graduationYear) user.graduationYear = graduationYear;
+    if (degree) user.degree = degree;
+    if (phone) user.phone = phone;
+    if (bio) user.bio = bio;
+
+    // Set profile pic path
+    if (req.file) {
+      user.profilePic = `/uploads/profilePics/${req.file.filename}`;
     }
-    
+
+    user.currentJob = {
+      title: title || user.currentJob?.title,
+      company: company || user.currentJob?.company,
+      location: location || user.currentJob?.location
+    };
+
     if (skills) {
-      user.skills = Array.isArray(skills) ? skills : [skills];
-    }
-    
-    if (socialLinks) {
-      user.socialLinks = {
-        linkedIn: socialLinks.linkedIn || user.socialLinks?.linkedIn,
-        github: socialLinks.github || user.socialLinks?.github
-      };
-    }
-    
-    if (privacySettings) {
-      user.privacySettings = {
-        showEmail: privacySettings.showEmail !== undefined 
-          ? privacySettings.showEmail 
-          : user.privacySettings?.showEmail,
-        showPhone: privacySettings.showPhone !== undefined 
-          ? privacySettings.showPhone 
-          : user.privacySettings?.showPhone
-      };
+      user.skills = typeof skills === 'string' ? skills.split(',') : skills;
     }
 
-    // Save the updated user
+    user.socialLinks = {
+      linkedIn: linkedIn || user.socialLinks?.linkedIn,
+      github: github || user.socialLinks?.github
+    };
+
+    user.privacySettings = {
+      showEmail: showEmail !== undefined ? showEmail === 'true' : user.privacySettings?.showEmail,
+      showPhone: showPhone !== undefined ? showPhone === 'true' : user.privacySettings?.showPhone
+    };
+
     const updatedUser = await user.save();
 
-    // Return the profile data (excluding sensitive information)
     res.status(200).json({
       success: true,
       profile: {
         graduationYear: updatedUser.graduationYear,
         degree: updatedUser.degree,
-        avatar: updatedUser.avatar,
+        profilePic: updatedUser.profilePic,
         phone: updatedUser.phone,
         bio: updatedUser.bio,
         currentJob: updatedUser.currentJob,
@@ -120,37 +110,127 @@ const getUserProfile = async (req, res) => {
 
 const updateUserProfile = async (req, res) => {
   try {
+    const {
+      firstName,
+      lastName,
+      email,
+      graduationYear,
+      degree,
+      phone,
+      bio,
+      password,
+      skills,
+      'currentJob.title': title,
+      'currentJob.company': company,
+      'currentJob.location': location,
+      'socialLinks.linkedIn': linkedIn,
+      'socialLinks.github': github,
+      'privacySettings.showEmail': showEmail,
+      'privacySettings.showPhone': showPhone
+    } = req.body;
+
     const user = await User.findById(req.user._id);
-
-    if (user) {
-      user.firstName = req.body.firstName || user.firstName;
-      user.lastName = req.body.lastName || user.lastName;
-      user.email = req.body.email || user.email;
-      user.graduationYear = req.body.graduationYear || user.graduationYear;
-      user.degree = req.body.degree || user.degree;
-      user.phone = req.body.phone || user.phone;
-      user.bio = req.body.bio || user.bio;
-      user.currentJob = req.body.currentJob || user.currentJob;
-      user.skills = req.body.skills || user.skills;
-      user.socialLinks = req.body.socialLinks || user.socialLinks;
-      user.privacySettings = req.body.privacySettings || user.privacySettings;
-
-      if (req.body.password) {
-        user.password = req.body.password;
-      }
-
-      const updatedUser = await user.save();
-
-      res.json({
-        user : updatedUser
-      });
-    } else {
-      res.status(404);
-      throw new Error('User not found');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
+
+    // Basic fields
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (email) user.email = email;
+    if (graduationYear) user.graduationYear = graduationYear;
+    if (degree) user.degree = degree;
+    if (phone) user.phone = phone;
+    if (bio) user.bio = bio;
+
+    // Profile picture
+    if (req.file) {
+      user.profilePic = `/uploads/profilePics/${req.file.filename}`;
+    }
+
+    // Nested fields
+    user.currentJob = {
+      title: title || user.currentJob?.title,
+      company: company || user.currentJob?.company,
+      location: location || user.currentJob?.location
+    };
+
+    if (skills) {
+      user.skills = typeof skills === 'string' ? skills.split(',') : skills;
+    }
+
+    user.socialLinks = {
+      linkedIn: linkedIn || user.socialLinks?.linkedIn,
+      github: github || user.socialLinks?.github
+    };
+
+    user.privacySettings = {
+      showEmail: showEmail !== undefined ? showEmail === 'true' : user.privacySettings?.showEmail,
+      showPhone: showPhone !== undefined ? showPhone === 'true' : user.privacySettings?.showPhone
+    };
+
+    // Password update
+    if (password) {
+      user.password = password;
+    }
+
+    const updatedUser = await user.save();
+
+    res.status(200).json({
+      success: true,
+      user: {
+        _id: updatedUser._id,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        profilePic: updatedUser.profilePic,
+        graduationYear: updatedUser.graduationYear,
+        degree: updatedUser.degree,
+        phone: updatedUser.phone,
+        bio: updatedUser.bio,
+        currentJob: updatedUser.currentJob,
+        skills: updatedUser.skills,
+        socialLinks: updatedUser.socialLinks,
+        privacySettings: updatedUser.privacySettings
+      }
+    });
+
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({
+      success: false,
+      message: 'Error updating profile',
+      error: error.message
+    });
+  }
+};
+
+const getUserByIdForAdmin = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    const user = await User.findById(userId).select('-password'); // exclude password
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+
+  } catch (error) {
+    console.error('Admin Get User Error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching user',
+      error: error.message,
+    });
   }
 };
 
@@ -363,6 +443,10 @@ const requestPasswordReset = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
+
+    console.log("Email received:", email);
+    console.log("User found:", user);
+
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -407,7 +491,8 @@ const exportUsers = async (req, res) => {
     
     // Convert to CSV
     const fields = ['_id', 'email', 'firstName', 'lastName', 'role'];
-    const csv = json2csv.parse(users, { fields });
+    const parser = new Parser({ fields });
+    const csv = parser.parse(users);
     
     res.header('Content-Type', 'text/csv');
     res.attachment('users-export.csv');
@@ -418,4 +503,4 @@ const exportUsers = async (req, res) => {
   }
 };
 
-export { createUserProfile, getUsers, getUserProfile, updateUserProfile, getUserById, deleteUserById, searchUsers, updateUserRole, getUserStats, bulkUpdateUsers, verifyUser, requestPasswordReset, updateLastActive, exportUsers };
+export { createUserProfile, getUsers, getUserProfile, updateUserProfile, getUserById, deleteUserById, searchUsers, updateUserRole, getUserStats, bulkUpdateUsers, verifyUser, requestPasswordReset, updateLastActive, exportUsers, getUserByIdForAdmin };

@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema({
     max: new Date().getFullYear()
   },
   degree: String,
-  avatar: String,
+  profilePic: String,
   isVerified: {
     type: Boolean,
     default: false
