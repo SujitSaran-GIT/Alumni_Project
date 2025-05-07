@@ -1,0 +1,74 @@
+backend/
+├── config/                  # Environment/config files
+│   ├── db.js                # MongoDB connection
+│   ├── cloudinary.js        # Cloudinary config (for file uploads)
+│   ├── email.js             # Email service config (Nodemailer/SendGrid)
+│   ├── jwt.js               # JWT configuration
+|   └── stripe.js
+│
+├── controllers/             # Route handlers (business logic)
+│   ├── auth.controller.js   # Login, register, forgot password
+│   ├── user.controller.js   # User CRUD operations
+│   ├── profile.controller.js # Profile management
+│   ├── job.controller.js    # Job postings
+│   ├── event.controller.js  # Events management
+│   ├── donation.controller.js # Donations
+│   ├── post.controller.js   # Forum posts
+|   ├── auth.controller.js
+|   ├── mentorship.controller.js
+│   └── notification.controller.js # Notifications
+│
+├── middlewares/             # Custom middleware
+│   ├── auth.middleware.js   # JWT authentication
+│   ├── role.middleware.js   # Role-based access (admin/alumni/student)
+│   ├── error.middleware.js  # Centralized error handling
+|   ├── payment.middleware.js
+│   └── upload.middleware.js # File upload handling
+│
+├── models/                  # Mongoose models (as previously defined)
+│   ├── User.js
+│   ├── Profile.js
+│   ├── Job.js
+│   ├── Event.js
+│   ├── Donation.js
+│   ├── Post.js
+|   ├── Mentorship.js
+│   └── Notification.js
+│
+├── routes/                  # API endpoints
+│   ├── auth.routes.js       # /api/auth
+│   ├── user.routes.js       # /api/users
+│   ├── profile.routes.js    # /api/profiles
+│   ├── job.routes.js        # /api/jobs
+│   ├── event.routes.js      # /api/events
+│   ├── donation.routes.js   # /api/donations
+│   ├── post.routes.js       # /api/posts
+|   ├── mentorship.routes.js # /api/mentorship
+│   └── notification.routes.js # /api/notifications
+│
+├── services/                # Reusable service layers
+│   ├── email.service.js     # Email templates and sending
+│   ├── storage.service.js   # File uploads (Cloudinary)
+│   └── payment.service.js   # Donation payments (Stripe/Razorpay)
+│
+├── utils/                   # Utility functions
+│   ├── apiFeatures.js       # Advanced filtering/pagination
+│   ├── helpers.js           # Generic helpers (e.g., generate random passwords)
+│   ├── logger.js            # Winston/Morgan logging
+│   └── validation.js        # Custom validation (e.g., alumni year check)
+│
+├── validators/              # Request validation schemas
+│   ├── auth.validator.js    # Joi/Zod schemas for auth
+│   ├── user.validator.js
+│   ├── job.validator.js
+│   └── event.validator.js
+│
+├── tests/                   # API tests (Jest/Mocha)
+│   ├── auth.test.js
+│   ├── user.test.js
+│   └── ...
+│
+├── .env                     # Environment variables
+├── .gitignore
+├── package.json
+└── server.js                # Main entry point
