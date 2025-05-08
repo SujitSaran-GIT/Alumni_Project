@@ -1,4 +1,4 @@
-export const BASE_URL = ""
+export const BASE_URL = 'http://localhost:8000/api';
 // app.use('/api/auth', authRoutes);
 // app.use('/api/users', userRoutes);
 // app.use('/api/profiles', profileRoutes);
@@ -8,7 +8,7 @@ export const BASE_URL = ""
 // app.use('/api/posts', postRoutes);
 // app.use('/api/notifications', notificationRoutes);
 // app.use('/api/mentorships', mentorshipRoutes);
-export const AUTH_URL = "/api/auth"
+export const AUTH_URL = "/auth"
 export const USERS_URL = "/api/users"
 export const PROFILES_URL = "/api/profiles"
 export const JOBS_URL= "/api/jobs"

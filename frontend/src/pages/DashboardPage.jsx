@@ -1,12 +1,31 @@
 import { motion } from 'framer-motion';
-import { useGetCurrentUserQuery } from '../redux/features/api/authApi';
+import { useGetCurrentUserQuery, useLogoutMutation } from '../redux/features/api/authApi';
 import DashboardStats from '../components/dashboard/DashboardStats';
 import RecentActivity from '../components/dashboard/RecentActivity';
 import UpcomingEvents from '../components/dashboard/UpcomingEvents';
 import AlumniStats from '../components/dashboard/AlumniStats';
+import { useNavigate } from 'react-router-dom';
+
+import { useDispatch } from 'react-redux';
+import { logout as logoutAction } from '../redux/features/auth/authSlice';
+
 
 const DashboardPage = () => {
   const { data: user } = useGetCurrentUserQuery();
+  const [logout] = useLogoutMutation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+
+  const handleLogout = async () => {
+    try {
+      await logout().unwrap();
+      dispatch(logoutAction());
+      navigate('/login');
+    } catch (err) {
+      console.error('Logout failed:', err);
+    }
+  };
 
   return (
     <motion.div
@@ -20,6 +39,12 @@ const DashboardPage = () => {
         animate={{ y: 0, opacity: 1 }}
         className="mb-8"
       >
+         <button
+            onClick={handleLogout}
+            className="mt-1 text-red-600 text-xs hover:underline"
+          >
+            Logout
+          </button>
         <h1 className="text-3xl font-bold text-gray-900">
           Welcome back, {user?.firstName}!
         </h1>

@@ -69,4 +69,12 @@ const login = async (req, res) => {
   }
 };
 
-export { register, login };
+
+const logout = (req, res) => {
+  // Just return 200 OK (token is removed client-side)
+  return res.status(200).json({ message: 'Logged out successfully' });
+};
+
+
+
+export { register, login, logout };

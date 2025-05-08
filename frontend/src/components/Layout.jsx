@@ -6,9 +6,13 @@ import NotificationBell from './notifications/NotificationBell';
 import LoadingSpinner from './ui/LoadingSpinner';
 import { useEffect, useState } from 'react';
 
+import { useLogoutMutation } from '../redux/features/api/authApi';
+
+
 const Layout = () => {
   const user = useSelector(selectCurrentUser);
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const [logoutApi] = useLogoutMutation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
@@ -22,10 +26,14 @@ const Layout = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login');
-    setMobileMenuOpen(false);
+  const handleLogout = async () => {
+    try {
+      await logoutApi().unwrap();
+      dispatch(logout());
+      navigate('/login');
+    } catch (err) {
+      console.error('Logout failed:', err);
+    }
   };
 
   const navLinks = [
@@ -92,13 +100,9 @@ const Layout = () => {
                         {user.firstName}
                       </span>
                     </Link>
-                    <motion.button
-                      onClick={handleLogout}
-                      className="bg-red-500 text-white px-3 py-1 rounded-md text-sm"
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      Logout
-                    </motion.button>
+                    <button onClick={handleLogout} className="text-red-600 hover:underline">
+          Logout
+        </button>
                   </div>
                 </div>
               ) : (
