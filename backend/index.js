@@ -39,8 +39,8 @@ app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 // Routes
 app.use('/api/auth', authRoutes);                     // passed
 app.use('/api/users', userRoutes);                    // passed
-app.use('/api/profiles', profileRoutes);
-app.use('/api/jobs', jobRoutes);
+app.use('/api/profiles', profileRoutes);              // passed
+app.use('/api/jobs', jobRoutes);                      // passed
 app.use('/api/events', eventRoutes);
 app.use('/api/donations', donationRoutes);
 app.use('/api/posts', postRoutes);
