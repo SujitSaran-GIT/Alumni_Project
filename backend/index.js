@@ -18,6 +18,7 @@ import mentorshipRoutes from './routes/mentorship.routes.js';
 
 // Middleware
 import { notFound, errorHandler } from './middlewares/error.middleware.js';
+import { initializeWebSocket } from './config/websocket.js';
 
 dotenv.config();
 
@@ -42,10 +43,10 @@ app.use('/api/users', userRoutes);                    // passed
 app.use('/api/profiles', profileRoutes);              // passed
 app.use('/api/jobs', jobRoutes);                      // passed
 app.use('/api/events', eventRoutes);                  // passed
-app.use('/api/donations', donationRoutes);
-app.use('/api/posts', postRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/mentorships', mentorshipRoutes);
+app.use('/api/donations', donationRoutes);            // 
+app.use('/api/posts', postRoutes);                    // passed
+app.use('/api/notifications', notificationRoutes);    // passed
+app.use('/api/mentorships', mentorshipRoutes);        // passed
 
 // Error handling
 app.use(notFound);
@@ -53,6 +54,8 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () =>
+const server = app.listen(PORT, () =>
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`)
 );
+
+initializeWebSocket(server);

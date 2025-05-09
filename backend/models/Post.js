@@ -32,5 +32,7 @@ const postSchema = new mongoose.Schema({
 postSchema.index({ authorId: 1 });
 postSchema.index({ tags: 1 });
 postSchema.index({ createdAt: -1 });
+postSchema.index({ content: 'text', title: 'text', tags: 'text' });
+
 
 export default mongoose.model('Post', postSchema);

@@ -8,9 +8,9 @@ const stripe = stripePackage(process.env.STRIPE_SECRET_KEY);
 
 const createDonation = async (req, res) => {
   try {
-    const { amount, currency = 'USD', campaign, paymentMethodId } = req.body;
+    const { amount, campaign, paymentMethodId } = req.body;
+    const currency = 'INR';
 
-    // Validate input
     if (!amount || amount <= 0) {
       return res.status(400).json({ message: 'Invalid donation amount' });
     }
@@ -19,9 +19,8 @@ const createDonation = async (req, res) => {
       return res.status(400).json({ message: 'Campaign is required' });
     }
 
-    // Create Stripe payment intent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to cents
+      amount: Math.round(amount * 100), // Convert ₹ to paise
       currency,
       payment_method: paymentMethodId,
       confirmation_method: 'manual',
@@ -29,12 +28,11 @@ const createDonation = async (req, res) => {
       metadata: {
         userId: req.user._id.toString(),
         campaign,
-        donationId: uuidv4() // Unique ID for tracking before DB creation
+        donationId: uuidv4()
       },
       return_url: `${process.env.FRONTEND_URL}/donation/complete`
     });
 
-    // Create donation record
     const donation = new Donation({
       donorId: req.user._id,
       amount,
@@ -47,14 +45,13 @@ const createDonation = async (req, res) => {
 
     const createdDonation = await donation.save();
 
-    // Send confirmation (receipt will be sent via webhook when payment succeeds)
     const user = await User.findById(req.user._id);
     await sendEmail(
       user.email,
       'Donation Initiated',
-      `We've received your donation request of ${amount} ${currency} to ${campaign}`,
+      `We've received your donation request of ₹${amount} to ${campaign}`,
       `<h1>Donation Initiated</h1>
-      <p>Amount: ${amount} ${currency}</p>
+      <p>Amount: ₹${amount}</p>
       <p>Campaign: ${campaign}</p>
       <p>Status: Processing</p>`
     );
@@ -66,19 +63,13 @@ const createDonation = async (req, res) => {
 
   } catch (error) {
     console.error('Donation error:', error);
-    
-    // Handle Stripe-specific errors
     if (error.type === 'StripeCardError') {
-      return res.status(400).json({ 
-        message: error.message || 'Payment failed' 
-      });
+      return res.status(400).json({ message: error.message || 'Payment failed' });
     }
-    
-    res.status(500).json({ 
-      message: error.message || 'Donation processing failed' 
-    });
+    res.status(500).json({ message: error.message || 'Donation processing failed' });
   }
 };
+
 
 const getDonations = async (req, res) => {
   try {
@@ -166,10 +157,217 @@ const handleDonationWebhook = async (req, res) => {
   res.json({ received: true });
 };
 
+const getDonationById = async (req, res) => {
+  try {
+    const donation = await Donation.findOne({
+      _id: req.params.id,
+      donorId: req.user._id
+    }).populate('donorId', 'firstName lastName email');
+
+    if (!donation) {
+      return res.status(404).json({ message: 'Donation not found' });
+    }
+
+    // Add receipt URL for Stripe payments
+    if (donation.paymentMethod === 'stripe') {
+      const paymentIntent = await stripe.paymentIntents.retrieve(
+        donation.transactionId
+      );
+      donation.receiptUrl = paymentIntent.charges.data[0]?.receipt_url || null;
+    }
+
+    res.json(donation);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+const getDonationsByCampaign = async (req, res) => {
+  try {
+    const { campaign } = req.params;
+    const donations = await Donation.find({ campaign })
+      .populate('donorId', 'firstName lastName email')
+      .sort({ createdAt: -1 });
+
+    res.json(donations);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+const updateDonationStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const validStatuses = ['completed', 'failed', 'refunded'];
+
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    const donation = await Donation.findOneAndUpdate(
+      { _id: req.params.id },
+      { status },
+      { new: true }
+    ).populate('donorId');
+
+    if (!donation) {
+      return res.status(404).json({ message: 'Donation not found' });
+    }
+
+    // Notify donor if status changed to refunded
+    if (status === 'refunded' && donation.donorId) {
+      await sendEmail(
+        donation.donorId.email,
+        'Donation Refunded',
+        `Your donation of ${donation.amount} ${donation.currency} has been refunded`,
+        `<h1>Donation Refunded</h1>
+        <p>Amount: ${donation.amount} ${donation.currency}</p>
+        <p>Campaign: ${donation.campaign}</p>
+        <p>Transaction ID: ${donation.transactionId}</p>`
+      );
+    }
+
+    res.json(donation);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+const getDonationStats = async (req, res) => {
+  try {
+    const stats = await Donation.aggregate([
+      {
+        $match: { status: 'completed' }
+      },
+      {
+        $group: {
+          _id: null,
+          totalAmount: { $sum: '$amount' },
+          count: { $sum: 1 },
+          averageAmount: { $avg: '$amount' }
+        }
+      }
+    ]);
+
+    const campaignStats = await Donation.aggregate([
+      {
+        $match: { status: 'completed' }
+      },
+      {
+        $group: {
+          _id: '$campaign',
+          totalAmount: { $sum: '$amount' },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { totalAmount: -1 } }
+    ]);
+
+    res.json({
+      overall: stats[0] || { totalAmount: 0, count: 0, averageAmount: 0 },
+      byCampaign: campaignStats
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+const createRecurringDonation = async (req, res) => {
+  try {
+    const { amount, campaign, paymentMethodId, interval = 'month' } = req.body;
+    const currency = 'INR';
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ message: 'Invalid donation amount' });
+    }
+
+    if (!['month', 'year'].includes(interval)) {
+      return res.status(400).json({ message: 'Invalid interval' });
+    }
+
+    const user = await User.findById(req.user._id);
+    let customer;
+
+    if (user.stripeCustomerId) {
+      customer = await stripe.customers.retrieve(user.stripeCustomerId);
+    } else {
+      customer = await stripe.customers.create({
+        email: user.email,
+        name: `${user.firstName} ${user.lastName}`,
+        metadata: { userId: user._id.toString() }
+      });
+      user.stripeCustomerId = customer.id;
+      await user.save();
+    }
+
+    const subscription = await stripe.subscriptions.create({
+      customer: customer.id,
+      items: [{
+        price_data: {
+          currency,
+          product_data: {
+            name: `Recurring donation to ${campaign}`
+          },
+          unit_amount: Math.round(amount * 100),
+          recurring: { interval }
+        }
+      }],
+      payment_behavior: 'default_incomplete',
+      expand: ['latest_invoice.payment_intent']
+    });
+
+    const donation = new Donation({
+      donorId: req.user._id,
+      amount,
+      currency,
+      campaign,
+      paymentMethod: 'stripe',
+      transactionId: subscription.id,
+      status: 'pending',
+      isRecurring: true
+    });
+
+    const createdDonation = await donation.save();
+
+    res.status(201).json({
+      donation: createdDonation,
+      clientSecret: subscription.latest_invoice.payment_intent.client_secret
+    });
+
+  } catch (error) {
+    console.error('Recurring donation error:', error);
+    res.status(500).json({ message: error.message || 'Recurring donation setup failed' });
+  }
+};
+
+const getAllDonations = async (req, res) => {
+  try {
+    const donations = await Donation.find({})
+      .populate('donorId', 'firstName lastName email')
+      .sort({ createdAt: -1 });
+
+    res.json(donations);
+  } catch (error) {
+    console.error('Error fetching all donations:', error);
+    res.status(500).json({ message: 'Failed to retrieve all donations' });
+  }
+};
+
+
 export { 
   createDonation, 
   getDonations, 
-  handleDonationWebhook 
+  handleDonationWebhook,
+  getDonationById,
+  getDonationsByCampaign,
+  updateDonationStatus,
+  getDonationStats,
+  createRecurringDonation,
+  getAllDonations
 };
 
 
