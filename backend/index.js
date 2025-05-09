@@ -41,7 +41,7 @@ app.use('/api/auth', authRoutes);                     // passed
 app.use('/api/users', userRoutes);                    // passed
 app.use('/api/profiles', profileRoutes);              // passed
 app.use('/api/jobs', jobRoutes);                      // passed
-app.use('/api/events', eventRoutes);
+app.use('/api/events', eventRoutes);                  // passed
 app.use('/api/donations', donationRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/notifications', notificationRoutes);
