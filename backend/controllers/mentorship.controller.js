@@ -4,7 +4,7 @@ import Notification from '../models/Notification.js';
 import { getWebSocketService } from '../config/websocket.js';
 import mongoose from 'mongoose';
 
-export const requestMentorship = async (req, res) => {
+const requestMentorship = async (req, res) => {
     try {
         const { mentorId, topics } = req.body;
 
@@ -34,7 +34,7 @@ export const requestMentorship = async (req, res) => {
     }
 };
 
-export const getMentors = async (req, res) => {
+const getMentors = async (req, res) => {
     try {
         const mentors = await User.aggregate([
             { $match: { 'profile.isMentor': true } },
@@ -59,7 +59,7 @@ export const getMentors = async (req, res) => {
 };
 
 // Get all mentorship requests for a mentor
-export const getMentorshipRequests = async (req, res) => {
+const getMentorshipRequests = async (req, res) => {
     try {
         const requests = await Mentorship.find({
             mentorId: req.user._id,
@@ -74,7 +74,7 @@ export const getMentorshipRequests = async (req, res) => {
 };
 
 // Accept a mentorship request
-export const acceptMentorship = async (req, res) => {
+const acceptMentorship = async (req, res) => {
     try {
         const mentorship = await Mentorship.findOneAndUpdate(
             {
@@ -117,7 +117,7 @@ export const acceptMentorship = async (req, res) => {
 };
 
 // Reject a mentorship request
-export const rejectMentorship = async (req, res) => {
+const rejectMentorship = async (req, res) => {
     try {
         const mentorship = await Mentorship.findOneAndUpdate(
             {
@@ -157,7 +157,7 @@ export const rejectMentorship = async (req, res) => {
 };
 
 // Get all active mentorships for a user
-export const getActiveMentorships = async (req, res) => {
+const getActiveMentorships = async (req, res) => {
     try {
         const mentorships = await Mentorship.find({
             $or: [
@@ -177,7 +177,7 @@ export const getActiveMentorships = async (req, res) => {
 };
 
 // Complete a mentorship
-export const completeMentorship = async (req, res) => {
+const completeMentorship = async (req, res) => {
     try {
         const mentorship = await Mentorship.findOneAndUpdate(
             {
@@ -227,7 +227,7 @@ export const completeMentorship = async (req, res) => {
 };
 
 // Get mentorship details
-export const getMentorshipDetails = async (req, res) => {
+const getMentorshipDetails = async (req, res) => {
     try {
         const mentorship = await Mentorship.findOne({
             _id: req.params.id,
@@ -253,7 +253,7 @@ export const getMentorshipDetails = async (req, res) => {
 // ================== ALUMNI CONTROLLERS ================== //
 
 // Search for mentors
-export const searchMentors = async (req, res) => {
+const searchMentors = async (req, res) => {
     try {
         const { topic, year, degree, name } = req.query;
         const query = { 'profile.isMentor': true };
@@ -280,7 +280,7 @@ export const searchMentors = async (req, res) => {
 };
 
 // Get user's mentorships
-export const getUserMentorships = async (req, res) => {
+const getUserMentorships = async (req, res) => {
     try {
         const { status } = req.query;
         const query = {
@@ -305,7 +305,7 @@ export const getUserMentorships = async (req, res) => {
 };
 
 // Respond to mentorship request (accept/reject)
-export const respondToRequest = async (req, res) => {
+const respondToRequest = async (req, res) => {
     try {
         const { response } = req.body; // 'accept' or 'reject'
         const status = response === 'accept' ? 'active' : 'rejected';
@@ -354,7 +354,7 @@ export const respondToRequest = async (req, res) => {
 };
 
 // Add meeting to mentorship
-export const addMeeting = async (req, res) => {
+const addMeeting = async (req, res) => {
     try {
         const { date, notes, duration } = req.body;
         if (!date || !notes || !duration) {
@@ -418,7 +418,7 @@ export const addMeeting = async (req, res) => {
 // ================== ADMIN CONTROLLERS ================== //
 
 // Get all mentorships (admin)
-export const getAllMentorships = async (req, res) => {
+const getAllMentorships = async (req, res) => {
     try {
         const { status, mentorId, menteeId } = req.query;
         const query = {};
@@ -440,7 +440,7 @@ export const getAllMentorships = async (req, res) => {
 };
 
 // Get mentorship statistics (admin)
-export const getMentorshipStats = async (req, res) => {
+const getMentorshipStats = async (req, res) => {
     try {
         const stats = await Mentorship.aggregate([
             {
@@ -488,7 +488,7 @@ export const getMentorshipStats = async (req, res) => {
 };
 
 // Cancel mentorship (admin)
-export const cancelMentorship = async (req, res) => {
+const cancelMentorship = async (req, res) => {
     try {
         const mentorship = await Mentorship.findByIdAndUpdate(
             req.params.id,
@@ -537,3 +537,5 @@ export const cancelMentorship = async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 };
+
+export { requestMentorship, getMentors, getMentorshipRequests, acceptMentorship, rejectMentorship, getActiveMentorships, completeMentorship, searchMentors, getMentorshipDetails, getUserMentorships, respondToRequest, addMeeting, getAllMentorships, getMentorshipStats, cancelMentorship }

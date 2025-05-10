@@ -4,7 +4,7 @@ import { sendEmail } from '../config/email.js';
 
 const register = async (req, res) => {
   try {
-    const { email, password, firstName, lastName, role } = req.body;
+    const { email, password, name, role } = req.body;
 
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -14,8 +14,7 @@ const register = async (req, res) => {
     const user = await User.create({
       email,
       password,
-      firstName,
-      lastName,
+      name,
       role,
     });
 
@@ -25,14 +24,13 @@ const register = async (req, res) => {
     await sendEmail(
       email,
       'Welcome to Alumni Portal',
-      `Welcome ${firstName}! Your account has been created successfully.`,
-      `<h1>Welcome ${firstName}!</h1><p>Your account has been created successfully.</p>`
+      `Welcome ${name}! Your account has been created successfully.`,
+      `<h1>Welcome ${name}!</h1><p>Your account has been created successfully.</p>`
     );
 
     res.status(201).json({
       _id: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      name: user.name,
       email: user.email,
       role: user.role,
       token,
@@ -57,8 +55,7 @@ const login = async (req, res) => {
 
     res.json({
       _id: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      name: user.name,
       email: user.email,
       role: user.role,
       token,

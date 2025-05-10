@@ -1,33 +1,31 @@
-import { configureStore } from '@reduxjs/toolkit';
-import { combineReducers } from 'redux';
-import { persistReducer, persistStore } from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
-import authReducer from '../redux/features/auth/authSlice';
-import { apiSlice } from '../redux/features/api/apiSlice';
+import { userLoginReducer, userRegisterReducer } from "./reducers/authReducers.js";
+import { combineReducers, configureStore } from '@reduxjs/toolkit'
 
+// Combine reducers under an 'auth' namespace
 const rootReducer = combineReducers({
-  auth: authReducer,
-  [apiSlice.reducerPath]: apiSlice.reducer,
+  auth: combineReducers({
+    userLogin: userLoginReducer,
+    userRegister: userRegisterReducer,
+  })
 });
 
-const persistConfig = {
-  key: 'root',
-  storage,
-  whitelist: ['user', 'token', 'isAuthenticated']
+// Get user info from localStorage
+const userInfoFromStorage = localStorage.getItem('userInfo')
+  ? JSON.parse(localStorage.getItem('userInfo'))
+  : null;
+
+// Set initial state
+const initialState = {
+  auth: {
+    userLogin: { userInfo: userInfoFromStorage },
+    userRegister: { userInfo: userInfoFromStorage }
+  }
 };
 
-const persistedReducer = persistReducer(persistConfig, rootReducer);
-
-export const store = configureStore({
-  reducer: persistedReducer,
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
-        ignoredPaths: ['register', 'rehydrate'],
-      },
-    }).concat(apiSlice.middleware),
+const store = configureStore({
+  reducer: rootReducer,
+  preloadedState: initialState,
   devTools: process.env.NODE_ENV !== 'production',
 });
 
-export const persistor = persistStore(store);
+export default store;

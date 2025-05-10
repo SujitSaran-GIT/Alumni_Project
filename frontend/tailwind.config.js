@@ -1,11 +1,35 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        primary: {
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0ea5e9',
+          600: '#0284c7',
+          700: '#0369a1',
+          800: '#075985',
+          900: '#0c4a6e',
+        },
+        'navy-blue': '#1A237E',
+        'off-white': '#F5F7FA',
+        'dark-charcoal': '#2C2C2C',
+        'sky-blue': '#42A5F5',
+        'warm-yellow': '#FBC02D',
+        'emerald-green': '#66BB6A',
+        'soft-red': '#EF5350',
+      },
+      animation: {
+        'bounce-slow': 'bounce 3s infinite',
+      }
+    },
   },
   plugins: [],
 }
