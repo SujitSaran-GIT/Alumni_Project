@@ -122,7 +122,7 @@ const Footer = ({ darkMode }) => {
             >
               <FiMail className={`${darkMode ? 'text-blue-400' : 'text-blue-600'} transition-colors duration-300`} />
               <span className={`${darkMode ? 'text-gray-400 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'} transition-colors duration-300`}>
-                contact@alumninetwork.edu
+                rcm.ac.in
               </span>
             </motion.div>
             <motion.div
@@ -131,7 +131,7 @@ const Footer = ({ darkMode }) => {
             >
               <FiPhone className={`${darkMode ? 'text-blue-400' : 'text-blue-600'} transition-colors duration-300`} />
               <span className={`${darkMode ? 'text-gray-400 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'} transition-colors duration-300`}>
-                +1 (555) 123-4567
+                +91 1234567890
               </span>
             </motion.div>
           </motion.div>

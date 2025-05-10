@@ -50,7 +50,7 @@ export default function Layout({ children, title, description }) {
           secondaryTextColor={theme.secondaryTextColor}
         />
 
-        <main className="flex-grow transition-colors duration-500">
+        <main className="flex-grow transition-colors duration-500 pt-16" darkMode={darkMode}>
           {children}
         </main>
 

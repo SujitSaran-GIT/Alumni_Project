@@ -40,6 +40,62 @@ const App = () => {
             <Route path="/about" element={<About />} />
             <Route path="/login" element={<AuthPage />} />
             <Route path="/signup" element={<AuthPage />} />
+            
+            {/* Admin Routes */}
+            <Route
+              path="/admin-dashboard/*"
+              element={
+                <PrivateRoute roles={['admin']}>
+                  <AdminDashboard />
+                </PrivateRoute>
+              }
+            />
+
+            {/* Alumni Routes */}
+            <Route
+              path="/alumni-dashboard/*"
+              element={
+                <PrivateRoute roles={['alumni']}>
+                  <AlumniDashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/mentorship"
+              element={
+                <PrivateRoute roles={['alumni']}>
+                  <Mentorship />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/jobs"
+              element={
+                <PrivateRoute roles={['alumni']}>
+                  <Jobs />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/events"
+              element={
+                <PrivateRoute roles={['alumni']}>
+                  <Event />
+                </PrivateRoute>
+              }
+            />
+
+            {/* Student Routes */}
+            <Route
+              path="/student-dashboard/*"
+              element={
+                <PrivateRoute roles={['student']}>
+                  <StudentDashboard />
+                </PrivateRoute>
+              }
+            />
+
+            {/* Common Dashboard Route */}
             <Route
               path="/dashboard"
               element={
@@ -48,54 +104,7 @@ const App = () => {
                 </PrivateRoute>
               }
             />
-            <Route
-              path="/student-dashboard"
-              element={
-                <PrivateRoute>
-                  <StudentDashboard />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/alumni-dashboard"
-              element={
-                <PrivateRoute>
-                  <AlumniDashboard />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/admin-dashboard"
-              element={
-                <PrivateRoute>
-                  <AdminDashboard />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/mentorship"
-              element={
-                <PrivateRoute>
-                  <Mentorship />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/jobs"
-              element={
-                <PrivateRoute>
-                  <Jobs />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/events"
-              element={
-                <PrivateRoute>
-                  <Event />
-                </PrivateRoute>
-              }
-            />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout>

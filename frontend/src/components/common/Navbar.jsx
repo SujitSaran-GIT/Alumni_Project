@@ -55,7 +55,7 @@ const Navbar = ({ darkMode, setDarkMode }) => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5, type: "spring" }}
-      className={`fixed w-full z-40 ${darkMode ? 'bg-black/90 backdrop-blur-md' : 'bg-white/90 backdrop-blur-md'} shadow-sm border-b ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}
+      className={`fixed w-full z-40 h-16 ${darkMode ? 'bg-black/90 backdrop-blur-md' : 'bg-white/90 backdrop-blur-md'} shadow-sm border-b ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}
     >
       <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
         <motion.div

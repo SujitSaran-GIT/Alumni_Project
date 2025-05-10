@@ -24,7 +24,7 @@ router.route('/').post(protect, createProfile);          // Create new profile  
 router.route('/').put(protect, updateProfile);           // Update entire profile                                               // passed
 
 router.route('/toggle-mentor').put(protect, toggleMentorStatus); // Toggle mentor status                                        // passed
-router.route('/me').delete(protect, deleteProfile);      // Delete own profile                                                  // passed
+router.route('/:id').delete(protect, deleteProfile);      // Delete own profile                                                  // passed
 
 // Admin-only routes
 router.route('/').get(protect, roleMiddleware(['admin']), getAllProfiles);   // Get all profiles (admin)                        // passed
